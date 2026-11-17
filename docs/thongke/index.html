@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Thống kê – Máy tính offline</title>
+<meta name="description" content="Tính trung bình, trung vị, mốt, tứ phân vị, khoảng tứ phân vị, phương sai, độ lệch chuẩn cho số liệu gốc và số liệu ghép nhóm. Chạy offline.">
+<meta name="theme-color" content="#4f46e5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Thống kê">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<script>try{var t=localStorage.getItem('tk_theme');if(!t)t=matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light';document.documentElement.dataset.theme=t}catch(e){}</script>
+<style>
+:root{--bg:#f3f4fb;--card:#fff;--text:#1a1c2c;--muted:#687089;--line:#e3e6f3;--accent:#4f46e5;--accent2:#7c3aed;--soft:#eef0ff;--warn:#92400e;--warnbg:#fff6e0;--bad:#b91c1c;--badbg:#ffecec;--ok:#047857;--shadow:0 1px 2px rgba(25,25,70,.06),0 8px 24px rgba(25,25,70,.07);--r:16px;color-scheme:light}
+:root[data-theme=dark]{--bg:#0e1020;--card:#171a2f;--text:#eceefb;--muted:#9aa1c2;--line:#2a2e4b;--accent:#8b8cff;--accent2:#b18cff;--soft:#222650;--warn:#fcd34d;--warnbg:#3a2f12;--bad:#fca5a5;--badbg:#3b1a1f;--ok:#6ee7b7;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px rgba(0,0,0,.35);color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;padding-bottom:calc(32px + env(safe-area-inset-bottom))}
+.wrap{max-width:720px;margin:0 auto;padding:0 14px}
+header{background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;padding:calc(14px + env(safe-area-inset-top)) 0 56px}
+header .wrap{display:flex;align-items:center;gap:10px}
+header h1{font-size:19px;margin:0;font-weight:700;letter-spacing:.2px;flex:1;line-height:1.2}
+header h1 small{display:block;font-weight:500;font-size:12px;opacity:.85;margin-top:2px}
+.ibtn{border:0;background:rgba(255,255,255,.18);color:#fff;border-radius:12px;height:40px;min-width:40px;padding:0 12px;font:600 14px inherit;cursor:pointer;backdrop-filter:blur(6px)}
+.ibtn:active{transform:scale(.96)}
+main{margin-top:-38px}
+.card{background:var(--card);border-radius:var(--r);box-shadow:var(--shadow);padding:14px;margin-bottom:12px;border:1px solid var(--line)}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--soft);border-radius:14px;padding:4px;gap:4px;margin-bottom:12px}
+.seg button{border:0;background:transparent;color:var(--muted);font:600 15px inherit;padding:11px 6px;border-radius:11px;cursor:pointer}
+.seg button[aria-selected=true]{background:var(--card);color:var(--accent);box-shadow:0 1px 4px rgba(20,20,70,.15)}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin:0 0 10px;font-weight:700}
+textarea,input,select{font:16px inherit;color:var(--text);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;outline:none;width:100%}
+textarea{padding:12px;min-height:130px;resize:vertical;font-variant-numeric:tabular-nums}
+input{padding:11px 8px;text-align:center;min-width:0}
+select{padding:10px;appearance:auto}
+textarea:focus,input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.hint{color:var(--muted);font-size:13px;margin:8px 2px 0}
+.bar-row{display:flex;gap:8px;align-items:center;margin-top:10px;flex-wrap:wrap}
+.chip{border:1.5px solid var(--line);background:transparent;color:var(--text);border-radius:999px;padding:8px 14px;font:600 14px inherit;cursor:pointer}
+.chip.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.chip:active{transform:scale(.97)}
+.grow{flex:1}
+#count{color:var(--accent);font-weight:700;font-size:14px}
+.rowh,.row{display:grid;grid-template-columns:26px 1fr 1fr 1fr 36px;gap:6px;align-items:center;margin-bottom:6px}
+.rowh span{font-size:12px;color:var(--muted);text-align:center;font-weight:600}
+.idx{font-size:12px;color:var(--muted);text-align:center}
+.x{border:0;background:transparent;color:var(--muted);font-size:22px;height:38px;border-radius:10px;cursor:pointer}
+.x:active{background:var(--badbg);color:var(--bad)}
+.msg{border-radius:12px;padding:10px 12px;font-size:14px;margin-bottom:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msg.warn{background:var(--warnbg);color:var(--warn)}
+.msg.err{background:var(--badbg);color:var(--bad)}
+.msg button{margin-left:auto;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:7px 12px;font:600 13px inherit;cursor:pointer}
+.grp{font-size:12px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700;margin:14px 2px 8px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.m{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:10px 12px;min-width:0}
+.m.hero{background:linear-gradient(135deg,color-mix(in srgb,var(--accent) 14%,var(--card)),color-mix(in srgb,var(--accent2) 14%,var(--card)));border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.m .l{font-size:12.5px;color:var(--muted);display:flex;gap:6px;align-items:baseline;justify-content:space-between}
+.m .l b{color:var(--accent);font-weight:700;font-size:14px;white-space:nowrap}
+.m .v{font-size:22px;font-weight:750;font-variant-numeric:tabular-nums;margin-top:2px;word-break:break-word}
+.m .n{font-size:12px;color:var(--muted);margin-top:1px}
+.empty{text-align:center;color:var(--muted);padding:28px 10px}
+.empty div{font-size:38px;margin-bottom:6px}
+details.step{border:1px solid var(--line);border-radius:12px;margin-bottom:8px;background:var(--bg)}
+details.step summary{padding:11px 12px;font-weight:650;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:8px}
+details.step summary::after{content:"▾";color:var(--muted)}
+details.step[open] summary::after{content:"▴"}
+details.step summary::-webkit-details-marker{display:none}
+.body{padding:0 12px 10px;font-size:14.5px;overflow-wrap:anywhere}
+.body p{margin:6px 0}
+.tbl{overflow-x:auto;margin:6px 0}
+table{border-collapse:collapse;width:100%;font-size:13.5px;font-variant-numeric:tabular-nums}
+th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+th{color:var(--muted);font-weight:650}
+svg.chart{width:100%;height:auto;display:block}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .ax{fill:var(--muted);font-size:10px}
+.chart .val{fill:var(--text);font-size:10px;text-anchor:middle;font-weight:600}
+.chart .bar{fill:var(--accent);opacity:.88}
+.chart .box{fill:color-mix(in srgb,var(--accent) 28%,transparent);stroke:var(--accent);stroke-width:2}
+.chart .ln{stroke:var(--accent);stroke-width:2}
+.chart .med{stroke:var(--accent2);stroke-width:3}
+.chart .out{fill:var(--bad)}
+.opt{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.opt label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px;font-weight:600}
+.opt .full{grid-column:1/-1}
+details.o>summary{cursor:pointer;font-weight:700;list-style:none;display:flex;justify-content:space-between}
+details.o>summary::-webkit-details-marker{display:none}
+details.o[open]>summary{margin-bottom:12px}
+footer{text-align:center;color:var(--muted);font-size:12.5px;padding:6px 14px}
+.badge{display:inline-block;background:color-mix(in srgb,var(--ok) 16%,transparent);color:var(--ok);border-radius:999px;padding:2px 10px;font-weight:650}
+.sheet{position:fixed;inset:0;background:rgba(10,10,30,.55);display:none;align-items:flex-end;justify-content:center;z-index:9}
+.sheet.on{display:flex}
+.sheet .p{background:var(--card);border-radius:22px 22px 0 0;padding:18px 18px calc(22px + env(safe-area-inset-bottom));width:100%;max-width:720px;max-height:85vh;overflow:auto}
+.sheet h3{margin:0 0 8px}
+.sheet ol{padding-left:20px;margin:6px 0 12px}
+.sheet li{margin:6px 0}
+.setup{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lab{display:block;font-size:12.5px;color:var(--muted);font-weight:600;margin-bottom:4px}
+.gsum{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--soft);border-radius:12px;padding:8px 8px 8px 12px;margin-bottom:10px;font-size:14px;font-weight:600;color:var(--accent)}
+.frow{display:grid;grid-template-columns:1fr 120px;gap:10px;align-items:center;margin-bottom:6px}
+.cls{font-variant-numeric:tabular-nums;font-weight:650;padding-left:4px}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+.m.wide{grid-column:1/-1}
+.v.sm{font-size:15px;font-weight:650;line-height:1.35}
+.more{border:0;background:transparent;color:var(--accent);font:650 12.5px inherit;padding:5px 0 0;cursor:pointer}
+[hidden]{display:none!important}
+@media(min-width:560px){.grid{grid-template-columns:repeat(3,1fr)}}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <h1>Thống kê<small>Số liệu gốc &amp; ghép nhóm · chạy offline</small></h1>
+    <button class="ibtn" id="btnInstall" title="Cài lên điện thoại">⬇ Cài app</button>
+    <button class="ibtn" id="btnTheme" aria-label="Đổi giao diện sáng/tối">◐</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="seg" role="tablist">
+    <button role="tab" id="tabRaw" aria-selected="true">Số liệu gốc</button>
+    <button role="tab" id="tabGrp" aria-selected="false">Ghép nhóm</button>
+  </div>
+
+  <section class="card" id="inRaw">
+    <h2>Nhập số liệu</h2>
+    <textarea id="raw" inputmode="decimal" enterkeyhint="done" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Ví dụ: 5 7 8 8 9 10 10 10 12&#10;Gõ cách nhau bởi dấu cách, xuống dòng hoặc dấu ;"></textarea>
+    <p class="hint">Dấu thập phân dùng <b>,</b> hoặc <b>.</b> đều được. Gõ nhanh <b>7:3</b> (hoặc <b>7*3</b>) nghĩa là số 7 xuất hiện 3 lần.</p>
+    <div class="bar-row">
+      <span id="count"></span><span class="grow"></span>
+      <button class="chip" id="exRaw">Dữ liệu mẫu</button>
+      <button class="chip" id="clrRaw">Xóa</button>
+    </div>
+  </section>
+
+  <section class="card" id="inGrp" hidden>
+    <div id="gSetup">
+      <h2>Bước 1 · Chia nhóm</h2>
+      <div class="setup">
+        <div><label class="lab" for="gK">Số nhóm</label><input id="gK" inputmode="numeric" enterkeyhint="next" autocomplete="off" placeholder="5"></div>
+        <div><label class="lab" for="gStart">Bắt đầu từ</label><input id="gStart" inputmode="decimal" enterkeyhint="next" autocomplete="off" placeholder="40"></div>
+        <div><label class="lab" for="gW">Độ dài mỗi nhóm</label><input id="gW" inputmode="decimal" enterkeyhint="done" autocomplete="off" placeholder="10"></div>
+      </div>
+      <p class="hint" id="gPrev"></p>
+      <div class="bar-row"><button class="chip pri grow" id="gOk">OK – Tạo bảng tần số</button><button class="chip" id="exGrp">Dữ liệu mẫu</button></div>
+    </div>
+    <div id="gTable" hidden>
+      <h2>Bước 2 · Nhập tần số</h2>
+      <div class="gsum"><span id="gSum"></span><button class="chip" id="gEdit">Sửa nhóm</button></div>
+      <div id="frows"></div>
+      <div class="bar-row"><span id="gTotal"></span><span class="grow"></span><button class="chip" id="clrGrp">Xóa hết</button></div>
+    </div>
+  </section>
+
+  <details class="card o" id="optBox">
+    <summary><span>⚙ Tùy chọn</span><span style="color:var(--muted);font-weight:500;font-size:13px" id="optSum"></span></summary>
+    <div class="opt">
+      <div><label for="oDec">Làm tròn số vô tỉ / số quá dài (chữ số thập phân)</label>
+        <select id="oDec"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></div>
+      <div><label for="oSep">Dấu thập phân</label>
+        <select id="oSep"><option value="comma">Dấu phẩy (3,14)</option><option value="dot">Dấu chấm (3.14)</option></select></div>
+      <div class="full"><label for="oVar">Phương sai &amp; độ lệch chuẩn</label>
+        <select id="oVar"><option value="pop">Tổng thể – chia n (theo SGK)</option><option value="sample">Mẫu – chia n − 1</option></select></div>
+      <div class="full" id="qmBox"><label for="oQm">Cách tính tứ phân vị (số liệu gốc)</label>
+        <select id="oQm"><option value="sgk">SGK – loại trung vị khi n lẻ</option><option value="tukey">Gồm trung vị khi n lẻ (Tukey)</option><option value="interp">Nội suy tuyến tính (Excel / Python)</option></select></div>
+    </div>
+  </details>
+
+  <div id="msgs"></div>
+  <section id="out"></section>
+
+  <footer>
+    <p><span class="badge" id="off" hidden>● Đã sẵn sàng dùng offline</span></p>
+    <p>Mọi phép tính chạy ngay trên máy bạn, không gửi dữ liệu đi đâu.</p>
+  </footer>
+</main>
+
+<div class="sheet" id="sheet"><div class="p">
+  <h3>Cài lên điện thoại (miễn phí)</h3>
+  <p><b>iPhone / iPad (Safari):</b></p>
+  <ol><li>Mở trang này bằng <b>Safari</b>.</li><li>Nhấn nút <b>Chia sẻ</b> (hình vuông có mũi tên lên).</li><li>Chọn <b>Thêm vào Màn hình chính</b> → <b>Thêm</b>.</li></ol>
+  <p><b>Android (Chrome):</b></p>
+  <ol><li>Nhấn menu <b>⋮</b> ở góc trên bên phải.</li><li>Chọn <b>Cài đặt ứng dụng</b> hoặc <b>Thêm vào màn hình chính</b>.</li></ol>
+  <p class="hint">Sau khi cài, mở từ biểu tượng ngoài màn hình chính — dùng được cả khi không có mạng.</p>
+  <div class="bar-row"><button class="chip pri" id="doInstall" hidden>Cài ngay</button><span class="grow"></span><button class="chip" id="closeSheet">Đóng</button></div>
+</div></div>
+
+<script id="core">
+const Core=(()=>{
+const abs=x=>x<0n?-x:x;
+const gcd=(a,b)=>{a=abs(a);b=abs(b);while(b){const t=a%b;a=b;b=t}return a};
+const P10=k=>10n**BigInt(k);
+
+/* ---------- phân số chính xác ---------- */
+class Frac{
+  constructor(n,d=1n){if(d===0n)throw new Error('div0');if(d<0n){n=-n;d=-d}const g=gcd(n,d)||1n;this.n=n/g;this.d=d/g}
+  static int(k){return new Frac(BigInt(k),1n)}
+  static parse(s){
+    s=String(s).trim().replace(/−/g,'-').replace(/\s/g,'').replace(',','.');
+    const m=s.match(/^([+-]?)(\d*)\.?(\d*)(?:e([+-]?\d+))?$/i);
+    if(!m||(m[2]===''&&m[3]===''))return null;
+    const exp=m[4]?parseInt(m[4],10):0;if(Math.abs(exp)>300)return null;
+    let n=BigInt(m[2]+m[3]),d=P10(m[3].length);
+    if(exp>0)n*=P10(exp);else if(exp<0)d*=P10(-exp);
+    return new Frac(m[1]==='-'?-n:n,d);
+  }
+  add(o){return new Frac(this.n*o.d+o.n*this.d,this.d*o.d)}
+  sub(o){return new Frac(this.n*o.d-o.n*this.d,this.d*o.d)}
+  mul(o){return new Frac(this.n*o.n,this.d*o.d)}
+  div(o){return new Frac(this.n*o.d,this.d*o.n)}
+  cmp(o){const x=this.n*o.d,y=o.n*this.d;return x<y?-1:x>y?1:0}
+  lt(o){return this.cmp(o)<0}
+  gt(o){return this.cmp(o)>0}
+  eq(o){return this.n===o.n&&this.d===o.d}
+  isZero(){return this.n===0n}
+  toNumber(){if(this._x===undefined)this._x=Number(this.n)/Number(this.d);return this._x}
+}
+const ZERO=Frac.int(0),ONE=Frac.int(1),TWO=Frac.int(2),QUARTER=new Frac(1n,4n),HALF3=new Frac(3n,2n);
+const num=x=>x===null||x===undefined?NaN:x.irr?Math.sqrt(x.rad.toNumber()):x.toNumber();
+const toNum=s=>{const f=Frac.parse(s);return f?f.toNumber():NaN};
+
+/* ---------- căn bậc hai & số vô tỉ ---------- */
+function isqrt(n){
+  if(n<2n)return n;
+  let x=1n<<BigInt((n.toString(2).length+1)>>1),y=(x+n/x)>>1n;
+  while(y<x){x=y;y=(x+n/x)>>1n}
+  return x;
+}
+function sqrtFrac(fr){
+  if(fr===null||fr.n<0n)return null;
+  const a=isqrt(fr.n),b=isqrt(fr.d);
+  return(a*a===fr.n&&b*b===fr.d)?new Frac(a,b):{irr:true,rad:fr};
+}
+
+/* ---------- chuyển sang chuỗi thập phân ---------- */
+function roundStr(fr,dec){
+  const neg=fr.n<0n,q=(2n*abs(fr.n)*P10(dec)+fr.d)/(2n*fr.d);
+  let s=q.toString();
+  if(dec>0){s=s.padStart(dec+1,'0');s=s.slice(0,-dec)+'.'+s.slice(-dec)}
+  return(neg&&q!==0n?'-':'')+s;
+}
+function expansion(fr,max=300){
+  const neg=fr.n<0n,n=abs(fr.n),d=fr.d,ip=(n/d).toString();
+  let r=n%d,pre='',rep='',trunc=false;
+  const digs=[],seen=new Map();
+  while(r!==0n){
+    const k=r.toString();
+    if(seen.has(k)){const st=seen.get(k);pre=digs.slice(0,st).join('');rep=digs.slice(st).join('');break}
+    if(digs.length>=max){trunc=true;pre=digs.join('');break}
+    seen.set(k,digs.length);r*=10n;digs.push((r/d).toString());r%=d;
+  }
+  if(r===0n&&!rep)pre=digs.join('');
+  return(neg&&n!==0n?'-':'')+ip+((pre||rep)?'.'+pre+(rep?'('+rep+')':'')+(trunc?'…':''):'');
+}
+const fracStr=fr=>fr.d===1n?fr.n.toString():fr.n+'/'+fr.d;
+const LIM=20;
+/* view(): cách hiển thị một giá trị (Frac hữu tỉ hoặc số vô tỉ {irr,rad}) */
+function view(v,dec=5){
+  if(v===null||v===undefined)return{num:'—',approx:false,numFull:'—',fullApprox:false,long:false,frac:'',irr:false};
+  if(v.irr){
+    const k=20,m=k+3,mk=(kk)=>{const x=isqrt(v.rad.n*P10(2*(kk+3))/v.rad.d);return roundStr(new Frac(x,P10(kk+3)),kk)};
+    return{num:mk(dec),approx:true,numFull:mk(k),fullApprox:true,long:true,frac:'√('+fracStr(v.rad)+')',irr:true};
+  }
+  const full=expansion(v,300);
+  if(full.length<=LIM)return{num:full,approx:false,numFull:full,fullApprox:false,long:false,frac:'',irr:false};
+  return{num:roundStr(v,dec),approx:true,numFull:full,fullApprox:false,long:true,frac:v.d===1n?'':fracStr(v),irr:false};
+}
+
+/* ---------- đọc số liệu ---------- */
+function parseRaw(text){
+  const vals=[],bad=[];
+  const t=String(text).replace(/−/g,'-').replace(/,\s+/g,' ').replace(/;/g,' ').trim();
+  if(!t)return{vals,bad};
+  for(const tok0 of t.split(/\s+/)){
+    let tok=tok0.replace(/,+$/,'');if(!tok)continue;
+    let cnt=1;const m=tok.match(/^(.+?)[*:x×](\d+)$/i);
+    if(m){tok=m[1];cnt=parseInt(m[2],10)}
+    const parts=(!m&&(tok.match(/,/g)||[]).length>1)?tok.split(',').filter(Boolean):[tok];
+    const nums=parts.map(Frac.parse);
+    if(nums.some(x=>x===null)||vals.length+cnt*nums.length>200000){bad.push(tok0);continue}
+    for(const v of nums)for(let i=0;i<cnt;i++)vals.push(v);
+  }
+  return{vals,bad};
+}
+const toF=v=>v instanceof Frac?v:Frac.parse(String(v));
+
+/* ---------- số liệu gốc ---------- */
+function describeRaw(vals0,o){
+  const sorted=vals0.map(toF).sort((a,b)=>a.toNumber()-b.toNumber());
+  const n=sorted.length,s=sorted.map(f=>f.toNumber()),N=Frac.int(n);
+  const freq=[];for(const f of sorted){const l=freq[freq.length-1];if(l&&l[0].eq(f))l[1]++;else freq.push([f,1])}
+  const cum=[];let c=0;for(const[,k]of freq){c+=k;cum.push(c)}
+  const at=i=>{let lo=0,hi=cum.length-1;while(lo<hi){const m=(lo+hi)>>1;if(cum[m]>i)hi=m;else lo=m+1}return freq[lo][0]};
+  const medR=(a,b)=>{const L=b-a;if(L<=0)return null;const m=a+(L>>1);return L%2?at(m):at(m-1).add(at(m)).div(TWO)};
+  let S=ZERO;for(const[f,k]of freq)S=S.add(f.mul(Frac.int(k)));
+  const mean=S.div(N),q2=medR(0,n);
+  let q1,q3,lower=null,upper=null;
+  if(n===1){q1=q3=q2;lower=s.slice();upper=s.slice()}
+  else if(o.qm==='interp'){
+    const qi=p=>{const pos=Frac.int(n-1).mul(p),lo=Number(pos.n/pos.d),fr=pos.sub(Frac.int(lo));return lo+1<n?at(lo).add(fr.mul(at(lo+1).sub(at(lo)))):at(lo)};
+    q1=qi(QUARTER);q3=qi(new Frac(3n,4n));
+  }else{
+    const h=n>>1;let l1=h,u0=n%2?h+1:h;
+    if(o.qm==='tukey'&&n%2){l1=h+1;u0=h}
+    q1=medR(0,l1);q3=medR(u0,n);lower=s.slice(0,l1);upper=s.slice(u0);
+  }
+  const iqr=q3.sub(q1),mn=sorted[0],mx=sorted[n-1],range=mx.sub(mn);
+  let ss=ZERO;for(const[f,k]of freq){const d=f.sub(mean);ss=ss.add(d.mul(d).mul(Frac.int(k)))}
+  const df=o.sample?n-1:n,variance=df>0?ss.div(Frac.int(df)):null,sd=sqrtFrac(variance);
+  const lf=q1.sub(HALF3.mul(iqr)),uf=q3.add(HALF3.mul(iqr));
+  const outD=freq.filter(([f])=>f.lt(lf)||f.gt(uf)),inD=freq.filter(([f])=>!(f.lt(lf)||f.gt(uf)));
+  const out=[];for(const[f,k]of outD)for(let i=0;i<k;i++)out.push(f.toNumber());
+  const maxF=freq.reduce((m,f)=>Math.max(m,f[1]),0);
+  const noMode=freq.length>1&&freq.every(f=>f[1]===maxF);
+  const modesF=noMode?[]:freq.filter(f=>f[1]===maxF).map(f=>f[0]);
+  return{kind:'raw',s,n,S:num(S),mean:num(mean),freq:freq.map(([f,k])=>[f.toNumber(),k]),maxF,noMode,modes:modesF.map(num),
+    q1:num(q1),q2:num(q2),q3:num(q3),lower,upper,iqr:num(iqr),min:s[0],max:s[n-1],range:num(range),ss:num(ss),df,
+    variance:num(variance),sd:num(sd),lf:num(lf),uf:num(uf),out,wLo:inD.length?inD[0][0].toNumber():s[0],wHi:inD.length?inD[inD.length-1][0].toNumber():s[n-1],
+    sample:!!o.sample,qm:o.qm,
+    ex:{S,mean,q1,q2,q3,iqr,min:mn,max:mx,range,ss,variance,sd,lf,uf,n:N,modes:modesF,outD}};
+}
+
+/* ---------- số liệu ghép nhóm ---------- */
+function buildClasses(rows){
+  const classes=[],errors=[],warnings=[],gaps=[];
+  rows.forEach((r,i)=>{
+    const a=String(r.lo).trim(),b=String(r.hi).trim(),c=String(r.f).trim();
+    if(!a&&!b&&!c)return;
+    if(!b&&!c)return;
+    const L=Frac.parse(a),H=Frac.parse(b),F=Frac.parse(c);
+    if(!L||!H||!F){warnings.push(`Hàng ${i+1}: chưa nhập đủ hoặc sai định dạng – đã bỏ qua.`);return}
+    if(!H.gt(L)){errors.push(`Hàng ${i+1}: cận trên phải lớn hơn cận dưới.`);return}
+    if(F.n<0n){errors.push(`Hàng ${i+1}: tần số không được âm.`);return}
+    classes.push({L,H,F,lo:L.toNumber(),hi:H.toNumber(),f:F.toNumber(),idx:i});
+  });
+  classes.sort((x,y)=>x.L.cmp(y.L));
+  for(let i=1;i<classes.length;i++){
+    const p=classes[i-1],q=classes[i];
+    if(q.L.lt(p.H))errors.push(`Hàng ${p.idx+1} và hàng ${q.idx+1}: hai nhóm chồng lên nhau.`);
+    else if(q.L.gt(p.H))gaps.push([p.idx,q.idx]);
+  }
+  return{classes,errors,warnings,gaps};
+}
+
+function describeGrouped(cl,o){
+  const rows=cl.map(c=>({idx:c.idx,L:c.L,H:c.H,F:c.F,lo:c.L.toNumber(),hi:c.H.toNumber(),f:c.F.toNumber(),hX:c.H.sub(c.L),mX:c.L.add(c.H).div(TWO)}));
+  let cum=ZERO;
+  for(const r of rows){r.cumBeforeX=cum;cum=cum.add(r.F);r.cumX=cum;r.dX=r.F.div(r.hX);r.h=r.hX.toNumber();r.m=r.mX.toNumber();r.cumBefore=r.cumBeforeX.toNumber();r.cum=r.cumX.toNumber();r.d=r.dX.toNumber()}
+  const nX=cum,equalW=rows.every(r=>r.hX.eq(rows[0].hX));
+  let sm=ZERO;for(const r of rows)sm=sm.add(r.F.mul(r.mX));
+  const mean=sm.div(nX);
+  const quant=p=>{
+    const t=nX.mul(p);
+    for(const r of rows){if(r.F.n>0n&&r.cumX.cmp(t)>=0){const valX=r.L.add(t.sub(r.cumBeforeX).div(r.F).mul(r.hX));return{valX,tX:t,val:valX.toNumber(),t:t.toNumber(),r}}}
+    const r=rows[rows.length-1];return{valX:r.H,tX:t,val:r.hi,t:t.toNumber(),r};
+  };
+  const Q1=quant(QUARTER),Q2=quant(new Frac(1n,2n)),Q3=quant(new Frac(3n,4n));
+  const V=r=>equalW?r.F:r.dX;
+  let mi=0;rows.forEach((r,i)=>{if(V(r).gt(V(rows[mi])))mi=i});
+  const maxV=V(rows[mi]),ties=rows.filter(r=>V(r).eq(maxV)).length;
+  const prevV=mi>0?V(rows[mi-1]):ZERO,nextV=mi<rows.length-1?V(rows[mi+1]):ZERO;
+  const d1=maxV.sub(prevV),d2=maxV.sub(nextV),dsum=d1.add(d2);
+  const mo=rows[mi].L.add((dsum.isZero()?ZERO:d1.div(dsum)).mul(rows[mi].hX));
+  let ss=ZERO;for(const r of rows){const d=r.mX.sub(mean);ss=ss.add(r.F.mul(d).mul(d))}
+  const df=o.sample?nX.sub(ONE):nX,variance=df.n>0n?ss.div(df):null,sd=sqrtFrac(variance);
+  const iqr=Q3.valX.sub(Q1.valX),lf=Q1.valX.sub(HALF3.mul(iqr)),uf=Q3.valX.add(HALF3.mul(iqr));
+  const outRows=rows.filter(r=>r.F.n>0n&&(r.L.lt(lf)||r.H.gt(uf)));
+  const first=rows[0],last=rows[rows.length-1],range=last.H.sub(first.L);
+  return{kind:'grouped',n:nX.toNumber(),rows,equalW,mean:num(mean),q1:Q1.val,q2:Q2.val,q3:Q3.val,qi:{q1:Q1,q2:Q2,q3:Q3},iqr:num(iqr),
+    mo:num(mo),mi,ties,d1:num(d1),d2:num(d2),prevV:num(prevV),nextV:num(nextV),maxV:num(maxV),ss:num(ss),df:num(df),
+    variance:num(variance),sd:num(sd),min:first.lo,max:last.hi,range:num(range),lf:num(lf),uf:num(uf),outRows,sample:!!o.sample,
+    ex:{n:nX,mean,q1:Q1.valX,q2:Q2.valX,q3:Q3.valX,iqr,mo,ss,variance,sd,min:first.L,max:last.H,range,lf,uf}};
+}
+return{Frac,toNum,parseRaw,buildClasses,describeRaw,describeGrouped,view};
+})();
+</script>
+
+<script id="ui">
+(()=>{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const KEY='tk_v2';
+const EX_RAW='5 7 8 8 9 10 10 10 12 13 14 15 15 16 30';
+const newGrp=()=>({sK:'',sStart:'',sW:'',k:0,start:0,w:0,freqs:[],built:false});
+let S={mode:'raw',raw:'',grp:newGrp(),o:{dec:5,sep:'comma',sample:false,qm:'sgk'}};
+try{const j=JSON.parse(localStorage.getItem(KEY)||'null');if(j){S={...S,...j,o:{...S.o,...(j.o||{})}};if(!S.grp||typeof S.grp!=='object'||!S.grp.freqs)S.grp=newGrp();if(S.grp.built&&!(S.grp.k>=1&&S.grp.w>0))S.grp=newGrp()}}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+/* ---------- định dạng số ---------- */
+function fmt(x,d=S.o.dec){
+  if(x===null||x===undefined||Number.isNaN(x))return'—';
+  if(!isFinite(x))return'∞';
+  let s=Number(x).toFixed(d);
+  if(s.includes('.'))s=s.replace(/0+$/,'').replace(/\.$/,'');
+  if(/^-0$/.test(s))s='0';
+  return S.o.sep==='comma'?s.replace('.',','):s;
+}
+const I=x=>fmt(x,Math.min(8,S.o.dec+2));
+const B=x=>fmt(x,6);
+
+/* ---------- biểu đồ SVG ---------- */
+function niceTicks(min,max,cnt=4){
+  if(!(max>min))max=min+1;
+  const raw=(max-min)/cnt,p=Math.pow(10,Math.floor(Math.log10(raw))),f=raw/p;
+  const step=(f<=1?1:f<=2?2:f<=5?5:10)*p,lo=Math.floor(min/step+1e-9)*step,hi=Math.ceil(max/step-1e-9)*step,t=[];
+  for(let v=lo;v<=hi+step*1e-6;v+=step)t.push(+v.toFixed(10));
+  return t;
+}
+function barChart(items,cont,title){
+  const W=340,H=210,L=40,R=10,T=18,Bm=34,pw=W-L-R,ph=H-T-Bm;
+  const ymax=items.reduce((m,i)=>Math.max(m,i.v),0)||1,yt=niceTicks(0,ymax,4),Y=yt[yt.length-1];
+  const xmin=cont?items[0].x0:0,xmax=cont?items[items.length-1].x1:items.length;
+  const X=x=>L+(x-xmin)/(xmax-xmin)*pw,Yp=v=>T+ph-(v/Y)*ph;
+  let g=`<text class="ax" x="${L}" y="10">${esc(title)}</text>`;
+  yt.forEach(v=>{g+=`<line class="grid" x1="${L}" x2="${W-R}" y1="${Yp(v)}" y2="${Yp(v)}"/><text class="ax" x="${L-5}" y="${Yp(v)+3}" text-anchor="end">${fmt(v,2)}</text>`});
+  items.forEach((it,i)=>{
+    const xa=X(cont?it.x0:i+.12),xb=X(cont?it.x1:i+.88),y=Yp(it.v);
+    g+=`<rect class="bar" x="${xa+(cont?.5:0)}" y="${y}" width="${Math.max(1,xb-xa-(cont?1:0))}" height="${Math.max(0,T+ph-y)}" rx="${cont?0:3}"/>`;
+    if(items.length<=12&&it.v>0)g+=`<text class="val" x="${(xa+xb)/2}" y="${y-3}">${fmt(it.v,2)}</text>`;
+  });
+  if(cont){
+    const e=items.map(i=>i.x0).concat(items[items.length-1].x1),k=Math.ceil(e.length/7);
+    e.forEach((v,i)=>{if(i%k===0||i===e.length-1)g+=`<text class="ax" x="${X(v)}" y="${H-Bm+14}" text-anchor="middle">${fmt(v,2)}</text>`});
+  }else{
+    const k=Math.ceil(items.length/10);
+    items.forEach((it,i)=>{if(i%k===0)g+=`<text class="ax" x="${X(i+.5)}" y="${H-Bm+14}" text-anchor="middle">${esc(it.label)}</text>`});
+  }
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(title)}">${g}</svg>`;
+}
+function boxPlot(o){
+  const W=340,H=100,L=16,R=16,my=34,bh=30;
+  const t=niceTicks(o.min,o.max,5),lo=t[0],hi=t[t.length-1],X=v=>L+(v-lo)/(hi-lo)*(W-L-R);
+  let g=`<line class="grid" x1="${L}" x2="${W-R}" y1="74" y2="74"/>`;
+  t.forEach(v=>{g+=`<line class="grid" x1="${X(v)}" x2="${X(v)}" y1="70" y2="78"/><text class="ax" x="${X(v)}" y="91" text-anchor="middle">${fmt(v,2)}</text>`});
+  g+=`<line class="ln" x1="${X(o.wLo)}" x2="${X(o.q1)}" y1="${my}" y2="${my}"/><line class="ln" x1="${X(o.q3)}" x2="${X(o.wHi)}" y1="${my}" y2="${my}"/>`;
+  g+=`<line class="ln" x1="${X(o.wLo)}" x2="${X(o.wLo)}" y1="${my-8}" y2="${my+8}"/><line class="ln" x1="${X(o.wHi)}" x2="${X(o.wHi)}" y1="${my-8}" y2="${my+8}"/>`;
+  g+=`<rect class="box" x="${X(o.q1)}" y="${my-bh/2}" width="${Math.max(1,X(o.q3)-X(o.q1))}" height="${bh}" rx="4"/><line class="med" x1="${X(o.q2)}" x2="${X(o.q2)}" y1="${my-bh/2}" y2="${my+bh/2}"/>`;
+  (o.out||[]).forEach(v=>{g+=`<circle class="out" cx="${X(v)}" cy="${my}" r="4"/>`});
+  return`<svg class="chart" viewBox="0 0 ${W} ${H}" role="img" aria-label="Biểu đồ hộp">${g}</svg>`;
+}
+function chartsRaw(r){
+  let items,cont,title='Tần số';
+  if(r.freq.length<=20){items=r.freq.map(([x,c])=>({v:c,label:fmt(x,2)}));cont=false}
+  else{
+    const k=Math.min(12,Math.max(5,Math.ceil(1+Math.log2(r.n)))),w=(r.max-r.min)/k,cnt=Array(k).fill(0);
+    r.s.forEach(x=>{cnt[Math.min(k-1,Math.floor((x-r.min)/w))]++});
+    items=cnt.map((v,i)=>({v,x0:r.min+i*w,x1:r.min+(i+1)*w}));cont=true;
+  }
+  return barChart(items,cont,title)+boxPlot({min:r.min,max:r.max,q1:r.q1,q2:r.q2,q3:r.q3,wLo:r.wLo,wHi:r.wHi,out:r.out});
+}
+function chartsGrouped(g){
+  const items=g.rows.map(r=>({x0:r.lo,x1:r.hi,v:g.equalW?r.f:r.d}));
+  const t=g.equalW?'Tần số':'Mật độ (tần số ÷ độ rộng nhóm)';
+  return barChart(items,true,t)+boxPlot({min:g.min,max:g.max,q1:g.q1,q2:g.q2,q3:g.q3,wLo:g.min,wHi:g.max,out:[]});
+}
+
+/* ---------- thẻ kết quả ---------- */
+const sp=s=>S.o.sep==='comma'?String(s).replace(/\./g,','):String(s);
+const ev=(r,k)=>Core.view(r.ex[k],S.o.dec);
+const E=(r,k)=>sp(ev(r,k).num);
+const A=(r,k,sign)=>ev(r,k).approx?'≈':sign;
+const mc=(sym,label,v,note,hero,wide)=>({sym,label,v,note,hero,wide});
+const vlist=(a,max=6)=>a.slice(0,max).map(x=>sp(Core.view(x,S.o.dec).num)).join('; ')+(a.length>max?'…':'');
+function groupsRaw(r){
+  const x=r.ex,mode=r.noMode?'Không có':vlist(x.modes);
+  const outs=x.outD.length?x.outD.slice(0,8).map(([f,k])=>sp(Core.view(f,S.o.dec).num)+(k>1?` (×${k})`:'')).join('; ')+(x.outD.length>8?'…':''):'Không có';
+  return[
+    {t:'Xu hướng trung tâm',c:[mc('x̄','Trung bình',x.mean,'',1),mc('Me','Trung vị',x.q2,'',1),mc('Mo','Mốt',mode,r.noMode?'mọi giá trị xuất hiện như nhau':`xuất hiện ${r.maxF} lần`,1)]},
+    {t:'Tứ phân vị',c:[mc('Q₁','Tứ phân vị thứ nhất',x.q1),mc('Q₂','Tứ phân vị thứ hai',x.q2,'= trung vị'),mc('Q₃','Tứ phân vị thứ ba',x.q3),mc('ΔQ','Khoảng tứ phân vị',x.iqr,'Q₃ − Q₁',1)]},
+    {t:'Độ phân tán & ngoại lệ',c:[mc('R','Khoảng biến thiên',x.range,'max − min'),mc('s²',r.sample?'Phương sai mẫu':'Phương sai',x.variance,r.sample?'chia n − 1':'chia n',1),mc('s','Độ lệch chuẩn',x.sd,'√ phương sai',1),
+      mc('x','Khoảng không ngoại lệ',`${E(r,'lf')} < x < ${E(r,'uf')}`,'Q₁ − 1,5ΔQ < x < Q₃ + 1,5ΔQ',0,1),
+      mc('⚠','Giá trị ngoại lệ',outs,r.out.length?'nằm ngoài khoảng trên':'mọi giá trị nằm trong khoảng',0,1)]},
+    {t:'Tổng quan',c:[mc('n','Cỡ mẫu',x.n),mc('Σ','Tổng',x.S),mc('min','Nhỏ nhất',x.min),mc('max','Lớn nhất',x.max)]}
+  ];
+}
+function groupsGrouped(g){
+  const x=g.ex,m=g.rows[g.mi];
+  const outs=g.outRows.length?g.outRows.slice(0,6).map(r=>`[${B(r.lo)}; ${B(r.hi)})`).join('; ')+(g.outRows.length>6?'…':''):'Không có';
+  return[
+    {t:'Xu hướng trung tâm',c:[mc('x̄','Trung bình',x.mean,'',1),mc('Me','Trung vị',x.q2,'',1),mc('Mo','Mốt',x.mo,`nhóm [${B(m.lo)}; ${B(m.hi)})`,1)]},
+    {t:'Tứ phân vị',c:[mc('Q₁','Tứ phân vị thứ nhất',x.q1),mc('Q₂','Tứ phân vị thứ hai',x.q2,'= trung vị'),mc('Q₃','Tứ phân vị thứ ba',x.q3),mc('ΔQ','Khoảng tứ phân vị',x.iqr,'Q₃ − Q₁',1)]},
+    {t:'Độ phân tán & ngoại lệ',c:[mc('R','Khoảng biến thiên',x.range,'cận trên cuối − cận dưới đầu'),mc('s²',g.sample?'Phương sai mẫu':'Phương sai',x.variance,g.sample?'chia n − 1':'chia n',1),mc('s','Độ lệch chuẩn',x.sd,'√ phương sai',1),
+      mc('x','Khoảng không ngoại lệ',`${E(g,'lf')} < x < ${E(g,'uf')}`,'Q₁ − 1,5ΔQ < x < Q₃ + 1,5ΔQ',0,1),
+      mc('⚠',g.outRows.length?'Nhóm có thể chứa ngoại lệ':'Giá trị ngoại lệ',outs,g.outRows.length?'phần nằm ngoài khoảng trên; cần số liệu gốc để biết giá trị cụ thể':'mọi nhóm nằm trong khoảng',0,1)]},
+    {t:'Tổng quan',c:[mc('n','Cỡ mẫu',x.n),mc('k','Số nhóm',String(g.rows.length)),mc('a','Cận dưới đầu',x.min),mc('b','Cận trên cuối',x.max)]}
+  ];
+}
+const specs=new Map(),expanded=new Set();
+function cardHTML(c){
+  const key=c.sym+'|'+c.label,ex=expanded.has(key);
+  let val,note=c.note||'',btn='',extra='',sm=false;
+  if(typeof c.v==='string')val=c.v;
+  else{
+    const v=Core.view(c.v,S.o.dec),open=ex&&v.long,ap=open?v.fullApprox:v.approx;
+    val=(ap?'≈ ':'')+sp(open?v.numFull:v.num);sm=open;
+    if(v.irr)note=(note?note+' · ':'')+'số vô tỉ';
+    if(open&&v.frac)extra=`<div class="n">= ${esc(sp(v.frac))}</div>`;
+    if(v.long)btn=`<button class="more" data-k="${esc(key)}">${open?'Thu gọn':(v.irr?'Xem thêm chữ số':'Xem đầy đủ')}</button>`;
+  }
+  return`<div class="m${c.hero?' hero':''}${c.wide?' wide':''}"><div class="l"><span>${c.label}</span><b>${c.sym}</b></div><div class="v${sm?' sm':''}">${esc(val)}</div>${note?`<div class="n">${esc(note)}</div>`:''}${extra}${btn}</div>`;
+}
+function cardText(c){
+  if(typeof c.v==='string')return c.v;
+  const v=Core.view(c.v,S.o.dec);return(v.fullApprox?'≈ ':'')+sp(v.numFull);
+}
+
+/* ---------- lời giải chi tiết ---------- */
+const step=(t,b)=>`<details class="step"><summary>${t}</summary><div class="body">${b}</div></details>`;
+const lst=(a,max=40)=>(a.length>max?a.slice(0,max):a).map(I).join('; ')+(a.length>max?'; …':'');
+const table=(head,rows)=>`<div class="tbl"><table><tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+function stepsRaw(r){
+  let h='';
+  h+=step('Sắp xếp dãy số',`<p>${lst(r.s)}</p><p>Cỡ mẫu n = <b>${r.n}</b></p>`);
+  if(r.freq.length<=40)h+=step('Bảng tần số',table(['Giá trị','Tần số','Tần số tương đối'],r.freq.map(([x,c])=>[I(x),c,fmt(c/r.n*100,1)+'%'])));
+  h+=step('Trung bình x̄',`<p>x̄ = Σx ÷ n = ${I(r.S)} ÷ ${r.n} ${A(r,'mean','=')} <b>${E(r,'mean')}</b></p>`);
+  const n=r.n;
+  h+=step('Trung vị (Q₂)',n%2?`<p>n = ${n} là số lẻ ⇒ Me là số ở vị trí ${(n+1)/2}.</p><p>Me ${A(r,'q2','=')} <b>${E(r,'q2')}</b></p>`:`<p>n = ${n} là số chẵn ⇒ Me là trung bình của hai số ở vị trí ${n/2} và ${n/2+1}.</p><p>Me = (${I(r.s[n/2-1])} + ${I(r.s[n/2])}) ÷ 2 ${A(r,'q2','=')} <b>${E(r,'q2')}</b></p>`);
+  let q;
+  if(r.qm==='interp')q=`<p>Nội suy tuyến tính (giống Excel QUARTILE.INC): vị trí của Qₚ là (n − 1)·p + 1.</p><p>Q₁: vị trí ${I((n-1)*.25+1)} ${A(r,'q1','⇒')} <b>${E(r,'q1')}</b></p><p>Q₃: vị trí ${I((n-1)*.75+1)} ${A(r,'q3','⇒')} <b>${E(r,'q3')}</b></p>`;
+  else q=`<p>Q₂ = Me = ${I(r.q2)}.</p><p>Nửa dưới${r.qm==='tukey'&&n%2?' (gồm cả trung vị)':n%2?' (không gồm trung vị)':''}: ${lst(r.lower,25)}<br>Q₁ = trung vị nửa dưới ${A(r,'q1','=')} <b>${E(r,'q1')}</b></p><p>Nửa trên${r.qm==='tukey'&&n%2?' (gồm cả trung vị)':n%2?' (không gồm trung vị)':''}: ${lst(r.upper,25)}<br>Q₃ = trung vị nửa trên ${A(r,'q3','=')} <b>${E(r,'q3')}</b></p>`;
+  h+=step('Tứ phân vị Q₁, Q₃',q);
+  h+=step('Khoảng biến thiên & khoảng tứ phân vị',`<p>R = max − min = ${I(r.max)} − ${I(r.min)} ${A(r,'range','=')} <b>${E(r,'range')}</b></p><p>ΔQ = Q₃ − Q₁ = ${I(r.q3)} − ${I(r.q1)} ${A(r,'iqr','=')} <b>${E(r,'iqr')}</b></p>`);
+  h+=step('Mốt (Mo)',r.noMode?`<p>Mọi giá trị đều xuất hiện ${r.maxF} lần ⇒ <b>không có mốt</b>.</p>`:`<p>Giá trị xuất hiện nhiều nhất (${r.maxF} lần): <b>${r.modes.map(I).join('; ')}</b></p>${r.modes.length>1?'<p>Có nhiều mốt.</p>':''}`);
+  h+=step('Phương sai & độ lệch chuẩn',`<p>${r.sample?'s² = Σ(xᵢ − x̄)² ÷ (n − 1)':'s² = Σ(xᵢ − x̄)² ÷ n'}</p><p>Σ(xᵢ − x̄)² = ${I(r.ss)}</p><p>s² = ${I(r.ss)} ÷ ${r.df} ${A(r,'variance','=')} <b>${E(r,'variance')}</b></p><p>s = √s² ${A(r,'sd','=')} <b>${E(r,'sd')}</b></p>`);
+  h+=step('Giá trị ngoại lệ',`<p>Cận dưới = Q₁ − 1,5·ΔQ = ${I(r.q1)} − 1,5·${I(r.iqr)} = ${E(r,'lf')}</p><p>Cận trên = Q₃ + 1,5·ΔQ = ${I(r.q3)} + 1,5·${I(r.iqr)} = ${E(r,'uf')}</p><p>Giá trị bình thường: ${E(r,'lf')} &lt; x &lt; ${E(r,'uf')}</p><p>${r.out.length?'Ngoại lệ: <b>'+r.out.map(I).join('; ')+'</b>':'Không có giá trị nào nằm ngoài khoảng này ⇒ <b>không có ngoại lệ</b>.'}</p>`);
+  return h;
+}
+function stepsGrouped(g){
+  let h='';
+  const cls=r=>`[${B(r.lo)}; ${B(r.hi)})`;
+  h+=step('Bảng số liệu',table(['Nhóm','Đại diện','Tần số','Tích lũy'],g.rows.map(r=>[cls(r),I(r.m),fmt(r.f,4),fmt(r.cum,4)]))+`<p>n = <b>${fmt(g.n,4)}</b></p>`);
+  h+=step('Trung bình x̄',`<p>x̄ = Σ(fᵢ·cᵢ) ÷ n, với cᵢ là giá trị đại diện (trung điểm).</p><p>x̄ = ${I(g.rows.reduce((a,r)=>a+r.f*r.m,0))} ÷ ${fmt(g.n,4)} ${A(g,'mean','=')} <b>${E(g,'mean')}</b></p>`);
+  const qs=[['Q₁','n/4',g.qi.q1,'q1'],['Q₂ = Me','n/2',g.qi.q2,'q2'],['Q₃','3n/4',g.qi.q3,'q3']];
+  h+=step('Tứ phân vị & trung vị',`<p>Qₚ = u + (t − C) ÷ f · h, với t = p·n; u, h, f là cận dưới, độ rộng, tần số của nhóm chứa Qₚ; C là tần số tích lũy trước nhóm đó.</p>`+qs.map(([nm,pl,o,key])=>`<p><b>${nm}</b>: t = ${pl} = ${I(o.t)} ⇒ nhóm ${cls(o.r)} (C = ${fmt(o.r.cumBefore,4)}, f = ${fmt(o.r.f,4)}, h = ${I(o.r.h)})<br>${nm.slice(0,2)} = ${I(o.r.lo)} + (${I(o.t)} − ${fmt(o.r.cumBefore,4)}) ÷ ${fmt(o.r.f,4)} · ${I(o.r.h)} ${A(g,key,'=')} <b>${E(g,key)}</b></p>`).join('')+`<p>ΔQ = Q₃ − Q₁ = ${I(g.q3)} − ${I(g.q1)} ${A(g,'iqr','=')} <b>${E(g,'iqr')}</b></p>`);
+  const m=g.rows[g.mi];
+  h+=step('Mốt (Mo)',`<p>Nhóm chứa mốt${g.equalW?' (tần số lớn nhất)':' (mật độ tần số lớn nhất)'}: ${cls(m)}</p><p>Mo = u + (a − a₋) ÷ ((a − a₋) + (a − a₊)) · h${g.equalW?'':' – với a là mật độ f/h'}</p><p>Mo = ${I(m.lo)} + ${I(g.d1)} ÷ (${I(g.d1)} + ${I(g.d2)}) · ${I(m.h)} ${A(g,'mo','=')} <b>${E(g,'mo')}</b></p>${g.ties>1?'<p>Lưu ý: có nhiều nhóm cùng tần số lớn nhất, ứng dụng lấy nhóm đầu tiên.</p>':''}`);
+  h+=step('Phương sai & độ lệch chuẩn',`<p>${g.sample?'s² = Σ fᵢ(cᵢ − x̄)² ÷ (n − 1)':'s² = Σ fᵢ(cᵢ − x̄)² ÷ n'}</p><p>Σ fᵢ(cᵢ − x̄)² = ${I(g.ss)}</p><p>s² = ${I(g.ss)} ÷ ${fmt(g.df,4)} ${A(g,'variance','=')} <b>${E(g,'variance')}</b></p><p>s = √s² ${A(g,'sd','=')} <b>${E(g,'sd')}</b></p>`);
+  h+=step('Giá trị ngoại lệ',`<p>Cận dưới = Q₁ − 1,5·ΔQ = ${I(g.q1)} − 1,5·${I(g.iqr)} = ${E(g,'lf')}</p><p>Cận trên = Q₃ + 1,5·ΔQ = ${I(g.q3)} + 1,5·${I(g.iqr)} = ${E(g,'uf')}</p><p>Giá trị bình thường: ${E(g,'lf')} &lt; x &lt; ${E(g,'uf')}</p>`+(g.outRows.length?`<p>Các nhóm có phần nằm ngoài khoảng: <b>${g.outRows.map(cls).join('; ')}</b> ⇒ có thể chứa giá trị ngoại lệ (số liệu ghép nhóm không cho biết giá trị cụ thể).</p>`:`<p>Mọi nhóm đều nằm trong khoảng ⇒ <b>không có ngoại lệ</b>.</p>`));
+  return h;
+}
+
+/* ---------- hiển thị ---------- */
+let lastText='';
+function addMsg(type,html,btn){
+  const d=document.createElement('div');d.className='msg '+type;d.innerHTML=`<span>${html}</span>`;
+  if(btn){const b=document.createElement('button');b.textContent=btn.text;b.onclick=btn.fn;d.appendChild(b)}
+  $('#msgs').appendChild(d);
+}
+function showEmpty(){
+  const g=S.grp,msg=S.mode==='raw'?'Nhập số liệu ở trên để xem kết quả ngay.':(g.built?'Nhập tần số của từng nhóm để xem kết quả.':'Chọn số nhóm, giá trị bắt đầu và độ dài mỗi nhóm, rồi nhấn OK.');
+  $('#out').innerHTML=`<div class="card empty"><div>📊</div>${msg}${S.mode==='raw'?'<br><small>Hoặc nhấn “Dữ liệu mẫu” để thử.</small>':''}</div>`;lastText='';
+}
+function render(res){
+  specs.clear();
+  const groups=res.kind==='raw'?groupsRaw(res):groupsGrouped(res);
+  let h='<div class="card">';
+  groups.forEach(g=>{h+=`<div class="grp">${g.t}</div><div class="grid">`+g.c.map(c=>{specs.set(c.sym+'|'+c.label,c);return cardHTML(c)}).join('')+'</div>'});
+  h+=`<div class="bar-row"><span class="grow"></span><button class="chip" id="copy">Sao chép kết quả</button></div></div>`;
+  h+=`<div class="card"><h2>Biểu đồ</h2>${res.kind==='raw'?chartsRaw(res):chartsGrouped(res)}</div>`;
+  h+=`<div class="card"><h2>Lời giải chi tiết</h2>${res.kind==='raw'?stepsRaw(res):stepsGrouped(res)}</div>`;
+  $('#out').innerHTML=h;
+  lastText=(res.kind==='raw'?'Số liệu gốc':'Số liệu ghép nhóm')+'\n'+groups.flatMap(g=>g.c.map(c=>`${c.label} (${c.sym}): ${cardText(c)}`)).join('\n');
+  $('#copy').onclick=async e=>{
+    const b=e.target;
+    try{await navigator.clipboard.writeText(lastText)}catch(_){const t=document.createElement('textarea');t.value=lastText;document.body.appendChild(t);t.select();try{document.execCommand('copy')}catch(__){}t.remove()}
+    b.textContent='Đã sao chép ✓';setTimeout(()=>b.textContent='Sao chép kết quả',1500);
+  };
+}
+$('#out').addEventListener('click',e=>{
+  const b=e.target.closest('.more');if(!b)return;
+  const key=b.dataset.k;expanded.has(key)?expanded.delete(key):expanded.add(key);
+  const spec=specs.get(key),m=b.closest('.m');
+  if(spec&&m)m.outerHTML=cardHTML(spec);
+});
+function compute(){
+  $('#msgs').innerHTML='';
+  const opts={qm:S.o.qm,sample:S.o.sample};
+  let res=null;
+  if(S.mode==='raw'){
+    const{vals,bad}=Core.parseRaw(S.raw);
+    $('#count').textContent=vals.length?`n = ${vals.length}`:'';
+    if(bad.length)addMsg('warn',`Không đọc được: <b>${bad.slice(0,5).map(esc).join(', ')}${bad.length>5?'…':''}</b> (đã bỏ qua).`);
+    if(vals.length)res=Core.describeRaw(vals,opts);
+  }else{
+    const g=S.grp;
+    if(g.built){
+      const rows=grpBounds(g).map(([lo,hi],i)=>({lo:String(lo),hi:String(hi),f:String(g.freqs[i]||'').trim()===''?'0':g.freqs[i]}));
+      const b=Core.buildClasses(rows);
+      b.warnings.forEach(w=>addMsg('warn',esc(w)));
+      b.errors.forEach(w=>addMsg('err',esc(w)));
+      const n=b.classes.reduce((a,c)=>a+c.f,0);
+      $('#gTotal').textContent=n>0?`n = ${fmt(n,4)}`:'';
+      if(!b.errors.length&&b.classes.length&&n>0)res=Core.describeGrouped(b.classes,opts);
+    }
+  }
+  if(res&&S.o.sample&&res.n<2){addMsg('warn','Phương sai mẫu cần n ≥ 2.')}
+  res?render(res):showEmpty();
+}
+let timer;const schedule=()=>{clearTimeout(timer);timer=setTimeout(compute,120);save()};
+
+/* ---------- ghép nhóm: chọn cấu trúc rồi nhập tần số ---------- */
+const cls=(lo,hi)=>`[${B(lo)}; ${B(hi)})`;
+function grpBounds(g){return Array.from({length:g.k},(_,i)=>[+(g.start+i*g.w).toFixed(10),+(g.start+(i+1)*g.w).toFixed(10)])}
+function readSetup(){
+  const k=Core.toNum(S.grp.sK),start=Core.toNum(S.grp.sStart),w=Core.toNum(S.grp.sW);
+  return{k,start,w,ok:Number.isInteger(k)&&k>=1&&k<=60&&isFinite(start)&&isFinite(w)&&w>0};
+}
+function updatePreview(){
+  const s=readSetup();$('#gOk').disabled=!s.ok;
+  if(!s.ok){$('#gPrev').textContent='Nhập số nhóm (1–60), giá trị bắt đầu và độ dài mỗi nhóm.';return}
+  const L=grpBounds(s).map(([lo,hi])=>cls(lo,hi));
+  $('#gPrev').textContent='Các nhóm: '+(L.length<=6?L.join(', '):L.slice(0,3).join(', ')+' … '+L[L.length-1]);
+}
+function renderGrp(focus){
+  const g=S.grp;
+  $('#gSetup').hidden=g.built;$('#gTable').hidden=!g.built;
+  $('#gK').value=g.sK;$('#gStart').value=g.sStart;$('#gW').value=g.sW;
+  updatePreview();
+  if(!g.built)return;
+  $('#gSum').textContent=`${g.k} nhóm · bắt đầu từ ${B(g.start)} · độ dài ${B(g.w)}`;
+  const bd=grpBounds(g);
+  $('#frows').innerHTML=bd.map(([lo,hi],i)=>`<div class="frow"><span class="cls">${cls(lo,hi)}</span><input inputmode="decimal" enterkeyhint="${i===bd.length-1?'done':'next'}" autocomplete="off" data-i="${i}" placeholder="tần số" value="${esc(g.freqs[i]||'')}"></div>`).join('');
+  if(focus){const el=document.querySelector('#frows input');el&&el.focus()}
+}
+for(const[id,key]of[['#gK','sK'],['#gStart','sStart'],['#gW','sW']])
+  $(id).addEventListener('input',e=>{S.grp[key]=e.target.value;updatePreview();save()});
+$('#gSetup').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;e.preventDefault();
+  const ins=['#gK','#gStart','#gW'].map($),ix=ins.indexOf(e.target);
+  if(ix>=0&&ix<2)ins[ix+1].focus();else if(!$('#gOk').disabled)$('#gOk').click();
+});
+$('#gOk').onclick=()=>{
+  const s=readSetup();if(!s.ok)return;
+  const g=S.grp,old=g.freqs||[];
+  g.k=s.k;g.start=s.start;g.w=s.w;g.freqs=Array.from({length:s.k},(_,i)=>old[i]||'');g.built=true;
+  renderGrp(true);compute();save();
+};
+$('#gEdit').onclick=()=>{S.grp.built=false;renderGrp();compute();save()};
+$('#frows').addEventListener('input',e=>{const i=+e.target.dataset.i;if(isNaN(i))return;S.grp.freqs[i]=e.target.value;schedule()});
+$('#frows').addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;e.preventDefault();
+  const ins=[...document.querySelectorAll('#frows input')],ix=ins.indexOf(e.target);
+  if(ix<ins.length-1)ins[ix+1].focus();else e.target.blur();
+});
+$('#exGrp').onclick=()=>{S.grp={sK:'5',sStart:'40',sW:'10',k:5,start:40,w:10,freqs:['5','12','20','15','8'],built:true};renderGrp();compute();save()};
+$('#clrGrp').onclick=()=>{S.grp=newGrp();renderGrp();compute();save()};
+
+/* ---------- số liệu gốc ---------- */
+$('#raw').addEventListener('input',e=>{S.raw=e.target.value;schedule()});
+$('#exRaw').onclick=()=>{S.raw=EX_RAW;$('#raw').value=S.raw;compute();save()};
+$('#clrRaw').onclick=()=>{S.raw='';$('#raw').value='';$('#raw').focus();compute();save()};
+
+/* ---------- chế độ & tùy chọn ---------- */
+function setMode(m){
+  S.mode=m;
+  $('#tabRaw').setAttribute('aria-selected',m==='raw');$('#tabGrp').setAttribute('aria-selected',m==='grp'||m==='grouped');
+  $('#inRaw').hidden=m!=='raw';$('#inGrp').hidden=m==='raw';$('#qmBox').hidden=m!=='raw';
+  compute();save();
+}
+$('#tabRaw').onclick=()=>setMode('raw');
+$('#tabGrp').onclick=()=>setMode('grouped');
+function optSummary(){$('#optSum').textContent=`${S.o.dec} số lẻ · ${S.o.sample?'chia n−1':'chia n'}`}
+const bindOpt=(id,fn)=>$(id).addEventListener('change',e=>{fn(e.target.value);optSummary();compute();save()});
+bindOpt('#oDec',v=>S.o.dec=+v);bindOpt('#oSep',v=>S.o.sep=v);bindOpt('#oVar',v=>S.o.sample=v==='sample');bindOpt('#oQm',v=>S.o.qm=v);
+
+/* ---------- giao diện sáng/tối, cài đặt, offline ---------- */
+$('#btnTheme').onclick=()=>{const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('tk_theme',t)}catch(e){}document.querySelector('meta[name=theme-color]').content=t==='dark'?'#0e1020':'#4f46e5'};
+let deferred=null;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;$('#doInstall').hidden=false});
+$('#btnInstall').onclick=()=>$('#sheet').classList.add('on');
+$('#closeSheet').onclick=()=>$('#sheet').classList.remove('on');
+$('#sheet').addEventListener('click',e=>{if(e.target.id==='sheet')e.target.classList.remove('on')});
+$('#doInstall').onclick=async()=>{if(!deferred)return;deferred.prompt();await deferred.userChoice;deferred=null;$('#sheet').classList.remove('on')};
+if(matchMedia('(display-mode: standalone)').matches||navigator.standalone)$('#btnInstall').hidden=true;
+if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol)){
+  navigator.serviceWorker.register('sw.js').then(()=>navigator.serviceWorker.ready).then(()=>{$('#off').hidden=false}).catch(()=>{});
+}
+
+/* ---------- khởi động ---------- */
+$('#raw').value=S.raw;$('#oDec').value=S.o.dec;$('#oSep').value=S.o.sep;$('#oVar').value=S.o.sample?'sample':'pop';$('#oQm').value=S.o.qm;
+renderGrp();optSummary();setMode(S.mode==='raw'?'raw':'grouped');
+})();
+</script>
+</body>
+</html>
