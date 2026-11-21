@@ -1,4 +1,4 @@
-const CACHE = 'thongke-v4';
+const CACHE = 'thongke-v5';
 const ASSETS = [
   './',
   './index.html',
